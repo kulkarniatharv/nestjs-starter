@@ -33,7 +33,7 @@ A production-ready NestJS starter repository for quickly bootstrapping new proje
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url> my-new-project
+git clone https://github.com/kulkarniatharv/nestjs-starter.git my-new-project
 cd my-new-project
 ```
 
