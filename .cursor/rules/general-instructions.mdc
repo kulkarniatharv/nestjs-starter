@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Use pnpm
+- Don't use relative imports. Use aliases set up in [tsconfig.json](mdc:tsconfig.json)
+- Use Zod for validation. I have a custom validation pipe [zod-validation.pipe.ts](mdc:src/common/pipes/zod-validation.pipe.ts)
+- Store DTOs and Interfaces in their respective folders and closer to where they are being used
