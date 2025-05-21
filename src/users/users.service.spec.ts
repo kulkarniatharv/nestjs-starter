@@ -3,6 +3,7 @@ import { InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma, User } from '@prisma/client';
 import { CreateUserInternalDto, UsersService } from './users.service';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -25,8 +26,8 @@ describe('UsersService', () => {
           provide: PrismaService,
           useValue: {
             user: {
-              create: jest.fn(),
-              findUnique: jest.fn(),
+              create: vi.fn(),
+              findUnique: vi.fn(),
             },
           },
         },
@@ -38,7 +39,7 @@ describe('UsersService', () => {
 
   describe('createUser', () => {
     it('should create a user', async () => {
-      jest.spyOn(prisma.user, 'create').mockResolvedValue(user);
+      vi.spyOn(prisma.user, 'create').mockResolvedValue(user);
       const dto: CreateUserInternalDto = {
         email: user.email,
         hashedPassword: user.password,
@@ -47,7 +48,7 @@ describe('UsersService', () => {
       await expect(service.createUser(dto)).resolves.toEqual(user);
     });
     it('should throw on unknown error', async () => {
-      jest.spyOn(prisma.user, 'create').mockRejectedValue(new Error('fail'));
+      vi.spyOn(prisma.user, 'create').mockRejectedValue(new Error('fail'));
       const dto: CreateUserInternalDto = {
         email: user.email,
         hashedPassword: user.password,
@@ -58,7 +59,7 @@ describe('UsersService', () => {
     it('should rethrow Prisma P2002 error', async () => {
       // @ts-expect-error: Testing error instance
       const error = new Prisma.PrismaClientKnownRequestError('Unique constraint', 'P2002');
-      jest.spyOn(prisma.user, 'create').mockRejectedValue(error);
+      vi.spyOn(prisma.user, 'create').mockRejectedValue(error);
       const dto: CreateUserInternalDto = {
         email: user.email,
         hashedPassword: user.password,
@@ -70,22 +71,22 @@ describe('UsersService', () => {
 
   describe('findByEmail', () => {
     it('should return user by email', async () => {
-      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+      vi.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
       await expect(service.findByEmail(user.email)).resolves.toEqual(user);
     });
     it('should return null if not found', async () => {
-      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+      vi.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
       await expect(service.findByEmail(user.email)).resolves.toBeNull();
     });
   });
 
   describe('findById', () => {
     it('should return user by id', async () => {
-      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+      vi.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
       await expect(service.findById(user.id)).resolves.toEqual(user);
     });
     it('should throw NotFoundException if not found', async () => {
-      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+      vi.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
       await expect(service.findById(user.id)).rejects.toThrow(NotFoundException);
     });
   });

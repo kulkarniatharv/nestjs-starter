@@ -39,7 +39,7 @@ describe('AuthController', () => {
           },
         },
       };
-      jest.spyOn(authService, 'signup').mockResolvedValue(result);
+      vi.spyOn(authService, 'signup').mockResolvedValue(result);
       const req = await controller.signup(dto as any);
       expect(req).toEqual({ data: result });
     });
@@ -49,7 +49,7 @@ describe('AuthController', () => {
     it('should call authService.login and return result', async () => {
       const dto = { email: 'test@example.com', password: 'password' };
       const result = { data: { message: 'Login successful', accessToken: 'token' } };
-      jest.spyOn(authService, 'login').mockResolvedValue(result);
+      vi.spyOn(authService, 'login').mockResolvedValue(result);
       const req = await controller.login(dto as any);
       expect(req).toEqual({ data: result });
     });

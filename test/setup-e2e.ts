@@ -64,4 +64,9 @@ function teardown() {
   console.log('Docker containers stopped and volumes removed.');
 }
 
-export { setup, teardown };
+export default async () => {
+  await setup(); // Call the original setup function
+  return async () => {
+    await teardown(); // Return the original teardown function to be called by Vitest
+  };
+};
