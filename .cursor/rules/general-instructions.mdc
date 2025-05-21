@@ -4,6 +4,8 @@ globs:
 alwaysApply: true
 ---
 - Use pnpm
-- Don't use relative imports. Use aliases set up in [tsconfig.json](mdc:tsconfig.json)
-- Use Zod for validation. I have a custom validation pipe [zod-validation.pipe.ts](mdc:src/common/pipes/zod-validation.pipe.ts)
-- Store DTOs and Interfaces in their respective folders and closer to where they are being used
+- Avoid relative imports; use aliases defined in [tsconfig.json](mdc:tsconfig.json)
+- Use Zod for validation via the custom [zod-validation.pipe.ts](mdc:src/common/pipes/zod-validation.pipe.ts)
+- Keep DTOs and interfaces in dedicated folders, close to their usage
+- Write small, modular functions
+- Ensure all code is production-grade: handle errors, follow best practices, and write clean, maintainable code

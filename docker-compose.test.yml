@@ -1,0 +1,21 @@
+services:
+  postgres_test:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: user_test
+      POSTGRES_PASSWORD: password_test
+      POSTGRES_DB: nestjs_starter_test_db
+    ports:
+      - '5434:5432' # Use a different host port for the test DB
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - test_db_network # Assign service to the new network
+
+volumes:
+  postgres_test_data:
+
+networks: # Define the new network
+  test_db_network:
+    driver: bridge 

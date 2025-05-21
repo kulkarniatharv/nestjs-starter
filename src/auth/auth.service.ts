@@ -1,4 +1,6 @@
+import { SanitizedUser } from '@/auth/decorators/current-user.decorator';
 import { LoginDto, SignUpDto } from '@/auth/dto';
+import { JwtPayload } from '@/auth/jwt.strategy';
 import { UsersService } from '@/users/users.service';
 import {
   ConflictException,
@@ -9,15 +11,17 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    @InjectPinoLogger(AuthService.name) private readonly logger: PinoLogger,
   ) {}
 
-  async signup(dto: SignUpDto): Promise<{ message: string; user: Omit<User, 'password'> }> {
+  async signup(dto: SignUpDto): Promise<{ data: { message: string; user: SanitizedUser } }> {
     const { email, password, name } = dto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -29,17 +33,18 @@ export class AuthService {
       });
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _password, ...userWithoutPassword } = user;
-      return { message: 'Signup successful', user: userWithoutPassword };
+      const { password, ...userWithoutPassword } = user;
+      return { data: { message: 'Signup successful', user: userWithoutPassword } };
     } catch (err: unknown) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
         throw new ConflictException('Email already exists');
       }
+      this.logger.error({ err }, 'Signup failed');
       throw new InternalServerErrorException('Could not sign up user.');
     }
   }
 
-  async login(dto: LoginDto): Promise<{ message: string; accessToken: string }> {
+  async login(dto: LoginDto): Promise<{ data: { message: string; accessToken: string } }> {
     const { email, password } = dto;
     const user = await this.usersService.findByEmail(email);
 
@@ -53,13 +58,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { userId: user.id, email: user.email };
-    const accessToken = this.generateToken(payload);
+    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const accessToken = await this.generateToken(payload);
 
-    return { message: 'Login successful', accessToken };
+    return { data: { message: 'Login successful', accessToken } };
   }
 
-  generateToken(payload: { userId: string; email: string }): string {
-    return this.jwtService.sign(payload);
+  async generateToken(payload: JwtPayload): Promise<string> {
+    return this.jwtService.signAsync(payload);
   }
 }

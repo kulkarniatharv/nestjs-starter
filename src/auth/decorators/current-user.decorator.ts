@@ -1,19 +1,31 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { User as PrismaUser } from '@prisma/client'; // Updated import path
-import { Request } from 'express'; // Added import for Express Request
+import { User as PrismaUser } from '@prisma/client';
+import { Request } from 'express';
 
-// Define a type for the user object that will be attached to the request
-// This can be more specific if you strip properties (e.g., password) in JwtStrategy
-export type AuthenticatedUser = PrismaUser; // Or a subset of PrismaUser
+export type SanitizedUser = Omit<PrismaUser, 'password'>;
+type SanitizedUserField = keyof SanitizedUser;
 
 interface RequestWithUser extends Request {
-  user: AuthenticatedUser;
+  user: PrismaUser;
+}
+
+function sanitizeUser(user: PrismaUser | null | undefined): SanitizedUser | null {
+  if (!user) return null;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 }
 
 export const CurrentUser = createParamDecorator(
-  (data: keyof AuthenticatedUser | undefined, ctx: ExecutionContext) => {
+  (field: SanitizedUserField | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
-    return data ? user?.[data] : user;
+    const sanitizedUser = sanitizeUser(user);
+
+    if (field && sanitizedUser) {
+      return sanitizedUser[field];
+    }
+
+    return sanitizedUser;
   },
 );
