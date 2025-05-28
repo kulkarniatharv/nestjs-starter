@@ -9,3 +9,7 @@ alwaysApply: true
 - Keep DTOs and interfaces in dedicated folders, close to their usage
 - Write small, modular functions
 - Ensure all code is production-grade: handle errors, follow best practices, and write clean, maintainable code
+- Use context7 to check necessary libraries' docs before planning or making any code changes
+- When writing tests, write tests to check behaviour and not how the function is implemented
+- Don't import `describe`, `beforeEach`, `afterEach`, `it` from `vitest` as they are available globally as defined in [vitest.config.ts](mdc:vitest.config.ts)
+- When facing linting errors, use `pnpm lint --fix` or `pnpm format` as a first step

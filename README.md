@@ -8,10 +8,9 @@ A production-ready NestJS starter repository for quickly bootstrapping new proje
 
 - **Framework:** [NestJS](https://nestjs.com/) (TypeScript)
 - **Database ORM:** [Prisma](https://www.prisma.io/) (default: PostgreSQL)
-- **Authentication:** JWT (with Passport.js)
+- **Authentication:** [Clerk](https://clerk.com/) (External authentication service)
 - **Validation:** [Zod](https://zod.dev/) (with a custom validation pipe)
-- **Password Hashing:** bcrypt
-- **Testing:** Jest
+- **Testing:** Vitest
 - **Package Manager:** pnpm
 - **Logger:** Pino
 
@@ -20,8 +19,8 @@ A production-ready NestJS starter repository for quickly bootstrapping new proje
 ## Features
 
 - Modular structure (auth, users, common, prisma)
-- JWT authentication with secure user handling
-- Prisma ORM with a default User model
+- Clerk authentication with secure user handling
+- Prisma ORM with a default User model (stores Clerk user IDs)
 - Zod-based request validation (see `src/common/pipes/zod-validation.pipe.ts`)
 - DTOs and interfaces organized by feature
 - Path aliases for clean imports (`@/`)
@@ -73,7 +72,7 @@ You can add multiple global guards (e.g., for throttling, authentication, roles)
 - `pnpm run test` – Run all tests
 - `pnpm run test:watch` – Run tests in watch mode
 - `pnpm run test:cov` – Run tests with coverage
-- `pnpm run test:e2e` – Run end-to-end tests
+- `pnpm run test:ui` – Run tests with UI
 
 ### Prisma scripts
 - `pnpm run prisma:generate` – Generate Prisma client
@@ -82,7 +81,7 @@ You can add multiple global guards (e.g., for throttling, authentication, roles)
 - `pnpm run prisma:db:push` – Push schema changes to the database (no migration)
 - `pnpm run prisma:format` – Format your Prisma schema
 - `pnpm run prisma:studio` – Open Prisma Studio (GUI for DB)
-- `pnpm run prisma:seed` – Run the seed script (currently a placeholder)
+- `pnpm run prisma:seed` – Run the seed script to create test users
 
 ---
 
@@ -110,13 +109,13 @@ cp .env.example .env
 ```
 
 - Set your `DATABASE_URL` for PostgreSQL
-- Set `JWT_SECRET` and `JWT_EXPIRATION_TIME`
+- Set `CLERK_SECRET_KEY` for Clerk authentication
 
 ### 4. Set up the database
 
 ```bash
 pnpm run prisma:migrate:dev --name init
-pnpm run prisma:seed # creates the test user (test@example.com / test123)
+pnpm run prisma:seed # creates test users (should match your Clerk users)
 ```
 
 ### 5. Run the project
@@ -138,13 +137,31 @@ pnpm run test
 
 ---
 
+## Authentication with Clerk
+
+This project uses Clerk for authentication. Clerk handles user registration, login, password management, and security externally.
+
+### Setup
+1. Create a Clerk application at [clerk.com](https://clerk.com)
+2. Set your `CLERK_SECRET_KEY` in the `.env` file
+3. Users are automatically protected by the global `ClerkAuthGuard`
+4. Use `@Public()` decorator for endpoints that don't require authentication
+5. Use `@CurrentUser()` decorator to access the authenticated user in controllers
+
+### User Storage
+- Clerk handles authentication and user management
+- Your database stores minimal user info (id, email, name) with Clerk user IDs
+- The `id` field in your User model should match the Clerk user ID
+
+---
+
 ## Conventions & Best Practices
 
 - **Use pnpm** for all package management.
 - **Validation:** Use Zod schemas and the custom validation pipe for DTO validation.
 - **DTOs & Interfaces:** Store them in `dto` and `interfaces` folders close to their usage (e.g., `src/users/dto`).
 - **Path Aliases:** Use `@/` for imports (configured in `tsconfig.json`).
-- **Sensitive Data:** Never expose sensitive fields (like passwords) in responses or decorators.
+- **Authentication:** Use `@Public()` for public endpoints, `@CurrentUser()` to access authenticated users.
 
 ---
 
@@ -152,7 +169,7 @@ pnpm run test
 
 ```
 src/
-  auth/         # Authentication (JWT, Passport, decorators, guards)
+  auth/         # Authentication (Clerk, Passport, decorators, guards)
   users/        # User module (controllers, services, DTOs)
   common/       # Shared utilities (pipes, etc.)
   prisma/       # Prisma service and module

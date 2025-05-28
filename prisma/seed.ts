@@ -1,5 +1,4 @@
 import { PrismaClient, User } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 import pino from 'pino';
 
 const prisma = new PrismaClient();
@@ -27,24 +26,23 @@ function getLogger() {
 const logger = getLogger();
 
 interface SeedUser {
+  id: string; // Clerk User ID
   email: string;
-  password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
 }
 
 function getSeedUsers(): SeedUser[] {
   return [
     {
+      id: 'clerk-seed-user-1',
       email: 'test@example.com',
-      password: 'test123',
-      name: 'test',
+      firstName: 'Test',
+      lastName: 'User',
     },
     // Add more users here as needed
+    // Note: These users should correspond to actual Clerk users
   ];
-}
-
-async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
 }
 
 async function createUserIfNotExists(user: SeedUser): Promise<User | null> {
@@ -53,12 +51,13 @@ async function createUserIfNotExists(user: SeedUser): Promise<User | null> {
     logger.info({ email: user.email }, 'User already exists');
     return null;
   }
-  const hashedPassword = await hashPassword(user.password);
   const created = await prisma.user.create({
     data: {
+      id: user.id,
       email: user.email,
-      password: hashedPassword,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      emailVerified: false,
     },
   });
   logger.info({ email: user.email }, 'Seeded user');

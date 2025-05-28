@@ -1,9 +1,11 @@
 import { AppController } from '@/app.controller';
 import { AppService } from '@/app.service';
 import { AuthModule } from '@/auth/auth.module';
+import { ClerkAuthGuard } from '@/auth/guards/clerk-auth.guard';
 import { isProdEnv } from '@/common/env.utils';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { UsersModule } from '@/users/users.module';
+import { ClerkClientProvider } from '@/providers/clerk-client.provider';
+import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -54,7 +56,7 @@ const getPinoHttpConfig = (configService: ConfigService) => {
     }),
     PrismaModule,
     AuthModule,
-    UsersModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [
@@ -63,6 +65,11 @@ const getPinoHttpConfig = (configService: ConfigService) => {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: ClerkAuthGuard,
+    },
+    ClerkClientProvider,
   ],
 })
 export class AppModule {}
